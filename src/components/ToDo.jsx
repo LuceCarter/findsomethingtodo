@@ -1,29 +1,40 @@
 import { useState } from "react";
 
-export const ToDo = ({ id, numberOfTimesDone }) => {
-  const [timesDone, setTimesDone] = useState(numberOfTimesDone);
+export const ToDo = ({ todo, showActions }) => {
+  const { _id, description, times_done, date_created, user_id } = todo;
+
+  const [timesDoneNo, setTimesDoneNo] = useState(times_done);
   const [isLoading, setIsLoading] = useState(false);
 
-  function markAsDone() {
+  async function increment() {
     setIsLoading(true);
-    // send a request to increment-todo?id=id
 
-    // fake the API call time right now
-    setTimeout(() => {
-      const newTimesDone = parseInt(timesDone, 10) + 1;
-      setTimesDone(newTimesDone); // add data from API call
-      setIsLoading(false);
-    }, 1000);
+    const response = await fetch("/api/increment-todo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: _id }),
+    });
+
+    const data = await response.json();
+    setTimesDoneNo(data.times_done);
+    setIsLoading(false);
   }
 
   return (
     <div>
-      <p>Here is a to do with id: {id}</p>
-      <p>Number of times done: {timesDone}</p>
-      <button onClick={() => markAsDone()}>
-        {isLoading ? "Loading..." : ""}
-        {!isLoading ? "I did this" : ""}
-      </button>
+      <p>{description}</p>
+      <p>Completed {timesDoneNo} times</p>
+      {showActions && (
+        <>
+          <button onClick={(e) => increment()}>
+            {isLoading ? "Loading..." : ""}
+            {!isLoading ? "I did this" : ""}
+          </button>
+          <button>Report</button>
+        </>
+      )}
     </div>
   );
 };
